@@ -1,11 +1,11 @@
 //start time: 9:30 AM CET
 //end time: 1:02 PM CET
 import * as React from 'react';
-
+import '../index.css';
 export default function Game(){
     //constants
-    const NUMBER_OF_COLUMNS = 6;
-    const NUMBER_OF_ROWS = 7;
+    const NUMBER_OF_COLUMNS = 7;
+    const NUMBER_OF_ROWS = 6;
 
     const [currentBoardLayout, setCurrentBoardLayout] = React.useState<string[]>(Array(NUMBER_OF_COLUMNS).fill('')); 
     const [isRedTurn, setIsRedTurn] = React.useState<boolean>(true);
@@ -70,9 +70,9 @@ export default function Game(){
         } 
 
         //check if there is a bottom left to top right diagonal winner
-        for (let j:number = -4; j<4; j++) {
+        for (let j:number = -3; j<3; j++) {
             let diagStr='';
-            for (let i:number = 0; i<NUMBER_OF_ROWS; i++) {
+            for (let i:number = 0; i<NUMBER_OF_COLUMNS; i++) {
                 if (boardLayout[i] && boardLayout[i][i+j]){
                     diagStr += boardLayout[i][i+j];
                 } else 
@@ -83,10 +83,10 @@ export default function Game(){
         }
 
         //check if there is a top left to bottom right diagonal winner
-        for (let j:number = -4; j<4; j++) {
+        for (let j:number = -3; j<3; j++) {
             let diagStr='';
-            for (let i:number = 0; i<=NUMBER_OF_ROWS; i++) {
-                if (boardLayout[7-i] && boardLayout[7-i][i+j]) {
+            for (let i:number = 0; i<=NUMBER_OF_COLUMNS; i++) {
+                if (boardLayout[NUMBER_OF_COLUMNS-i] && boardLayout[NUMBER_OF_COLUMNS-i][i+j]) {
                     diagStr += boardLayout[7-i][i+j];
                 } else 
                     diagStr += ' ';      
@@ -121,7 +121,7 @@ export default function Game(){
         message = 'Yellow turn to play'
 
     return (<>
-            
+            <h1>Connect 4 Game</h1>
             { message && <h3>{message}</h3> } 
             { askToPlayAgain && 
                 <button 
@@ -129,11 +129,11 @@ export default function Game(){
                         Play Another Game
                 </button> 
             }
-            <div style={{display: 'flex', alignItems: 'center', margin: '4px', gap: 3, position: 'absolute', transform:'translate(-50%, -50%)', top:'50%', left:'50%'}}>
+            <div className={'board'} >
                 { 
                     currentBoardLayout.map((columnStr:string, columnIdx:number) =>{
                         return <div 
-                                    style={{ display: 'flex', flexDirection: 'column-reverse', gap: 3 }}
+                                    className={'column'}
                                     onClick={()=>{clickedColumn(columnIdx);}}>  
                                         <BoardColumn 
                                             columnStr={columnStr} 
@@ -146,20 +146,20 @@ export default function Game(){
 
 
 function BoardColumn({columnStr}:{ columnStr:string }){
-    const NUMBER_OF_ROWS = 7;
+    const NUMBER_OF_ROWS = 6;
     let tiles:any = [];
     for (let tileIdx:number = 0; tileIdx<NUMBER_OF_ROWS; tileIdx++) {
         if (columnStr[tileIdx]==='y')
             tiles.push(
-                <div style={{ height: '30px', width: '30px', border: '1px black solid',  borderRadius:'15px', backgroundColor: 'yellow'  }} key={tileIdx}></div>
+                <div className={'tile yellow'} key={tileIdx}></div>
             )
         else if (columnStr[tileIdx]==='r')
             tiles.push(
-                <div style={{ height: '30px', width: '30px', border: '1px black solid',  borderRadius:'15px', backgroundColor: 'red' }} key={tileIdx}></div>
+                <div className={'tile red'} key={tileIdx}></div>
             )
         else 
             tiles.push(
-                <div style={{ height: '30px', width: '30px', border: '1px black solid',  borderRadius:'15px'}} key={tileIdx}></div>
+                <div className={'tile'} key={tileIdx}></div>
             )      
     }
     return (<>
