@@ -1,7 +1,9 @@
+//start time: 9:30 AM CET
+//end time: 1:02 PM CET
 import * as React from 'react';
 
 export default function Game(){
-    //
+    //constants
     const NUMBER_OF_COLUMNS = 6;
     const NUMBER_OF_ROWS = 7;
 
@@ -9,13 +11,15 @@ export default function Game(){
     const [isRedTurn, setIsRedTurn] = React.useState<boolean>(true);
     const [isGameFinished, setIsGameFinished] = React.useState<boolean>(false);
     const [winnerColor, setWinnerColor] = React.useState<string>('');
+    const [isBoardFull, setIsBoardFull] = React.useState<boolean>(false)
 
     function clickedColumn(id:number){
         //check if column is full
         if (currentBoardLayout[id].length == NUMBER_OF_ROWS) {
-            alert('column is full, pick another'); //use a state for this;
             return;
         }
+        if (isGameFinished) 
+            return;
         const color = isRedTurn ? 'r' : 'y';
         const newBoardLayout = [...currentBoardLayout];
         newBoardLayout[id] = currentBoardLayout[id] + color;
@@ -25,21 +29,35 @@ export default function Game(){
     }
 
     function checkIsGameFinished(boardLayout:string[]){
-        //check if board is full and there is no winner;
+
+        //check if board is full and there is no winner:
+        let numberColumnsFilled:number = 0;
+        boardLayout.forEach((column:string) => {
+            if (column.length==NUMBER_OF_ROWS) numberColumnsFilled++;
+        });
+        if (numberColumnsFilled == NUMBER_OF_COLUMNS) {
+            setIsBoardFull(true);
+            return
+        }
+
+        //does input string win
+        function checkStringWins(str:string){
+            if (str.includes('rrrr')) {
+                setWinnerColor('Red');
+                setIsGameFinished(true);
+                return true;
+            }
+            if (str.includes('yyyy')) {
+                setWinnerColor('Yellow');
+                setIsGameFinished(true);
+                return true;
+            }
+            return false;
+        }
 
         //check if columns has a winner:
         boardLayout.forEach(column=>{
-            if (column.includes('rrrr')) {
-                setWinnerColor('r');
-                setIsGameFinished(true);
-                return true
-                
-            }
-            if (column.includes('yyyy')) {
-                setWinnerColor('y');
-                setIsGameFinished(true);
-                return true
-            }
+            checkStringWins(column);
         });
 
         //check if rows has a winner
@@ -48,19 +66,10 @@ export default function Game(){
             for (let x:number = 0; x<NUMBER_OF_COLUMNS; x++) {
                 rowStr += boardLayout[x][y];
             }
-            if (rowStr.includes('yyyy')) {
-                setWinnerColor('y');
-                setIsGameFinished(true);
-                return true
-            }
-            if (rowStr.includes('rrrr')) {
-                setWinnerColor('r');
-                setIsGameFinished(true);
-                return true
-            }
+            checkStringWins(rowStr);
         } 
-        //check if there is a bottom left to top right diagonal winner
 
+        //check if there is a bottom left to top right diagonal winner
         for (let j:number = -4; j<4; j++) {
             let diagStr='';
             for (let i:number = 0; i<NUMBER_OF_ROWS; i++) {
@@ -69,27 +78,58 @@ export default function Game(){
                 } else 
                     diagStr += ' ';      
             }
-            if (diagStr.includes('yyyy')) {
-                setWinnerColor('y');
-                setIsGameFinished(true);
-                return true
-            }
-            if (diagStr.includes('rrrr')) {
-                setWinnerColor('r');
-                setIsGameFinished(true);
-                return true
-            }
+            checkStringWins(diagStr);
+            
         }
-        
-        return false
+
+        //check if there is a top left to bottom right diagonal winner
+        for (let j:number = -4; j<4; j++) {
+            let diagStr='';
+            for (let i:number = 0; i<=NUMBER_OF_ROWS; i++) {
+                if (boardLayout[7-i] && boardLayout[7-i][i+j]) {
+                    diagStr += boardLayout[7-i][i+j];
+                } else 
+                    diagStr += ' ';      
+            }
+            checkStringWins(diagStr);
+        }
+        return false; //Game is not over
         
     }
-    if (isGameFinished)
-        return <div>`Game Over, ${winnerColor} wins`</div>;
 
-    return (<>{ isRedTurn ? <div> Red turn to play </div>: <div> Yellow turn to play </div>}
+    //reset Board if user wants to play again
+    function resetBoard(){
+        setCurrentBoardLayout(Array(NUMBER_OF_COLUMNS).fill(''));
+        setIsGameFinished(false);
+        setIsRedTurn(true);
+        setIsBoardFull(false);
+        setWinnerColor('')
+    }
 
-            <div style={{display: 'flex', alignItems: 'center', margin: '4px', gap: 3}}>
+    //show message on the Boards State
+    let message:string = '';
+    let askToPlayAgain:boolean = false;
+    if (isGameFinished) {
+        message= `Game Over, ${winnerColor} wins`;
+        askToPlayAgain = true;
+    } else if (isBoardFull) {
+        message = 'Game Over, Tie Game';
+        askToPlayAgain = true;
+    } else if (isRedTurn)
+        message = 'Red Turn to play';
+    else if (!isRedTurn) 
+        message = 'Yellow turn to play'
+
+    return (<>
+            
+            { message && <h3>{message}</h3> } 
+            { askToPlayAgain && 
+                <button 
+                    onClick={()=>{ resetBoard(); }}>
+                        Play Another Game
+                </button> 
+            }
+            <div style={{display: 'flex', alignItems: 'center', margin: '4px', gap: 3, position: 'absolute', transform:'translate(-50%, -50%)', top:'50%', left:'50%'}}>
                 { 
                     currentBoardLayout.map((columnStr:string, columnIdx:number) =>{
                         return <div 
